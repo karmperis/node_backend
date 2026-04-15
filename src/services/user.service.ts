@@ -10,5 +10,5 @@ export const createUser = async(payload:IUser) => {
     "password":payload.password
   });
   console.log("New user: ", user);
-  return user;
+  return user.save();
 }
