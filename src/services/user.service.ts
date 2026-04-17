@@ -2,10 +2,16 @@ import User, { IUser } from '../models/user.model';
 import Role, { IRole } from '../models/role.model';
 import { Types } from 'mongoose';
 import bcrypt from 'bcrypt';
-import { CreateUserDto } from '../dto/user.dto';
+import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import * as userDAO from '../dao/user.dao';
+import { update } from '../controller/user.controller';
 
 export const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS || '10');
+
+export const findUsers = async() =>{
+  const users = await userDAO.findAll();
+  return users;
+}
 
 export const findUserByEmail = async(email:string) => {
   const user = await userDAO.findByEmail(email);
@@ -39,3 +45,23 @@ export const createUser = async(payload:CreateUserDto) => {
   return user
 }
 
+export const updateUser = async(username: string, payload: UpdateUserDto) =>{
+  const updateData: Partial<IUser> = {};
+  console.log(payload.email);
+  if (payload.firstname!=undefined) updateData.firstname = payload.firstname;
+  if (payload.lastname!=undefined) updateData.lastname = payload.lastname;
+  if (payload.email!=undefined) updateData.email = payload.email;
+  if (payload.address!=undefined) updateData.address = payload.address;
+  if (payload.phone!=undefined) updateData.phone = payload.phone;
+
+  if (payload.password!=undefined) {
+    updateData.password = await bcrypt.hash(payload.password, SALT_ROUNDS);
+  }
+
+  if (payload.roles!=undefined) {
+    updateData.roles = payload.roles.map(id => new Types.ObjectId(id));
+  }
+
+  const user = await userDAO.updateUser(username, updateData);
+  return user; 
+}
