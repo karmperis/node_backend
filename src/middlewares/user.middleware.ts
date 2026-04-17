@@ -3,8 +3,11 @@ import {IRole} from '../models/role.model';
 
 export const hasReaderRole = (req: Request, res: Response, next: NextFunction) => {
   try{
-    console.log("req.user:", req.user);
-    const checkReaderRole = req.user.roles.some((r: IRole) => r.role === 'reader');
+    const roles = Array.isArray(req.user?.roles) ? req.user.roles : [];
+    const checkReaderRole = roles.some((r: IRole | string) => {
+      if (typeof r === 'string') return r.toUpperCase() === 'READER';
+      return String(r?.role || '').toUpperCase() === 'READER';
+    });
     if (!checkReaderRole) {
       return res.status(403).json({message: 'Forbidden no reader role'});
     }
